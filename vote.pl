@@ -80,20 +80,17 @@ while(@ARGV>0){
 
 
 #Printing introduction, and what to track.
-#Console notice
-print "
+Statusprint "
+-------------------------------------------------------------------------------
 Twitter-Voting version $VERSION Copyright (C) 2015 Kivanc Yazan
+
 Twitter-Voting comes with ABSOLUTELY NO WARRANTY; for details see LICENSE file.
-    This is free software, and you are welcome to redistribute it
-    under certain conditions; see LICENSE file for details.
+This is free software, and you are welcome to redistribute it
+under certain conditions; see LICENSE file for details.
+-------------------------------------------------------------------------------
 
-
-
-
-
-
-\nTracking for: #$event_keyword\n
-Teams are ";
+>> Now tracking for: #$event_keyword
+>> Teams are ";
 foreach (@team_keywords){
 	print "#$_ ";
 }
@@ -128,13 +125,13 @@ my $sth_empty = $dbh->prepare("SELECT COUNT(*) as num FROM tweets;");
 	my $initial_num_votes = $ref_empty->{'num'};
 	$sth_empty->finish();
 	if($initial_num_votes>0){
-		#Console notice
-		print "
-\n\n----------WARNING----------\n
-Tweets table in DB is NOT empty.\n
-Results to be displayed might NOT be correct.\n
-You may want to restart program after cleaning your db.\n
----------------------------\n
+		Status		print "
+
+----------WARNING----------
+Tweets table in DB is NOT empty.
+Results to be displayed might NOT be correct.
+You may want to restart program after cleaning your db.
+---------------------------
 ";
 	}
 
@@ -160,8 +157,11 @@ my $listener = AnyEvent::Twitter::Stream->new(
 	timeout  => 60
 );
 
-#Console notice
-print "\n\nStarting to stream..\nUsername\t\tStatus\n";
+Statusprint "
+
+Listening to Twitter.
+Username\t\tStatus
+";
 
 $done->recv;
 #next line will be run on timeout errors
@@ -266,8 +266,7 @@ sub incoming{
 	);
 
 	#Watching incoming tweets can be fun.
-	#Console notice
-	printf "\@%-20.20s %-15.15s\n",$tweet->{user}{screen_name},$vote_indicator;
+	Status	printf "\@%-20.20s %-15.15s\n",$tweet->{user}{screen_name},$vote_indicator;
 
 
 }
@@ -298,20 +297,27 @@ sub disconnect(){
 
 	my $percent = round(100*$total_valid_votes/$total_votes);
 
-	print "\n\nThere were $total_votes many votes, in which $total_valid_votes many were valid.\n";
-	print "(That's about $percent% of the total votes.)\n\n";
+	Status	print "
 
-	#Get vote counts for each team!
+RESULTS
+Total number of votes......: $total_votes
+Total number of valid votes: $total_valid_votes
+Percentage of valid votes..: $percent%
+
+TEAMS
+";
+
+	#Get vote counts for each team
 	$sth3 = $dbh->prepare("SELECT COUNT(*) as num, Status FROM tweets WHERE Status 
 		LIKE '$valid_vote_prefix%' GROUP BY Status ORDER BY num DESC;");
 	$sth3->execute();
 	while($ref3 = $sth3->fetchrow_hashref()){
-		print $ref3->{'Status'}."\t".$ref3->{'num'}." votes\n";
+		Status		print $ref3->{'Status'}."\t".$ref3->{'num'}." votes\n";
 	}
 	$sth3->finish();
 
 	#Finally, display invalid votes.
-	print "\n";
+	Status	print "\nINVALID VOTES\n";
 	$sth3 = $dbh->prepare("SELECT COUNT(*) as num, Status FROM tweets WHERE Status 
 		LIKE 'not%' GROUP BY Status ORDER BY num DESC;");
 	$sth3->execute();
@@ -321,10 +327,10 @@ sub disconnect(){
 
 	#Now we can exit in peace.
 	$sth3->finish();
-	print "\nDisconnecting..";
+	Status	print "\nDisconnecting..";
 	$dbh->disconnect();
 	$done->send;
-	print ".\n";
+	Status	print ".\n";
 }
 
 
