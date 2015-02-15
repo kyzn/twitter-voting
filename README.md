@@ -35,9 +35,11 @@ This tweet will be catched by the application, but will not be considered as a v
 
 This will be a valid vote, as it both includes event and team keyword as hashtag.
 
+There is also a mechanism that converts incoming hashtags that user wrote to lowercase. The same piece of code also converts Turkish characters to their Latin correspondant (eg. ç becomes c), so you might want to pick you team keywords accordingly.
+
 #How to Use
 
-You can just run `vote.pl` by executing `perl vote.pl` in the folder where code exists. The default event-keyword and team-keywords are set to *myEvent2015* and *xx* through *tt*, so you might want to change them. There is an easier way: You can pass them as arguments. First argument will be event keyword, and the rest will be team keywords. An example can be found below:
+You can just run `vote.pl` by executing `perl vote.pl` in the folder where code exists. The default event-keyword and team-keywords are set to *rotaart2015* and 12 original participant teams, so you might want to change them. There is an easier way: You can pass them as arguments. First argument will be event keyword, and the rest will be team keywords. An example can be found below:
 
 `perl vote.pl myEvent2016 red blue green`would run the application with event keyword *myEvent2016* and team keywords *red*, *blue*, *green*. 
 

@@ -6,6 +6,7 @@
 #Refer to readme.md file to understand how this script works.
 #You can always reach/contribute to this open-source code at github.com/kyzn/twitter-voting
 
+use utf8;
 use warnings;
 use strict;
 use Modern::Perl;
@@ -15,19 +16,33 @@ use DateTime::Format::DBI; #convert perl time to mysql time
 use DBI(); #mysql connection, db has to be ut8mb4! (refer to setup.sql)
 use Math::Round; #we wanted to show the percentage somewhere
 
+use Data::Dumper;
+
 our $VERSION=0.1;
 
 #Upon exiting with ctrl+c, we will close connections and
 # more importantly, display the results.
 $SIG{INT}  = \&disconnect;
 
+#Used for Turkish character conversion
+my @trchar=('ö','Ö','ç','Ç','ş','Ş','ı','İ','ğ','Ğ','ü','Ü');
+my @nontrc=('o','O','c','C','s','S','i','I','g','G','u','U');
+
 #Set default keywords to be tracked. They will be replaced by arguments if any given.
 my $event_keyword = "myEvent2015";
 my @team_keywords = qw/
-	xx
-	yy
-	zz
-	tt
+altunizade
+bakirkoy
+beyoglu
+bostanci
+dolmabahce1
+dolmabahce2
+fatih
+gayrettepe
+izmit
+kalamis
+taksim
+tuzla
 /;
 
 
@@ -80,7 +95,7 @@ while(@ARGV>0){
 
 
 #Printing introduction, and what to track.
-Statusprint "
+print "
 -------------------------------------------------------------------------------
 Twitter-Voting version $VERSION Copyright (C) 2015 Kivanc Yazan
 
@@ -89,7 +104,7 @@ This is free software, and you are welcome to redistribute it
 under certain conditions; see LICENSE file for details.
 -------------------------------------------------------------------------------
 
->> Now tracking for: #$event_keyword
+>> Now tracking for: #$event_keyword
 >> Teams are ";
 foreach (@team_keywords){
 	print "#$_ ";
@@ -125,7 +140,7 @@ my $sth_empty = $dbh->prepare("SELECT COUNT(*) as num FROM tweets;");
 	my $initial_num_votes = $ref_empty->{'num'};
 	$sth_empty->finish();
 	if($initial_num_votes>0){
-		Status		print "
+print "
 
 ----------WARNING----------
 Tweets table in DB is NOT empty.
@@ -157,10 +172,10 @@ my $listener = AnyEvent::Twitter::Stream->new(
 	timeout  => 60
 );
 
-Statusprint "
+print "
 
 Listening to Twitter.
-Username\t\tStatus
+Username\tStatus
 ";
 
 $done->recv;
@@ -188,19 +203,30 @@ sub incoming{
 
 	#There is a priority in invalid votes. Once we understand a vote is invalid,
 	# we stop making controls. For example, if we know a tweet is sent from a 
-	# rather recent account, we don't check whether it's a retweet or not.
+	# rather recent account, we don't check whether it's a retweet or not.
 	# Incorrect numbers of types of invalid votes would be a consequence of this.
-	# We may develop an approach to see all reasons that makes a tweet invalid,
+	# We may develop an approach to see all reasons that makes a tweet invalid,
 	# or we may simply say "this is invalid" and leave the reason behind us.
 	# All these are possible improvements. Please do send pull requests if you
 	# have time to work on such features.
 
 	#compare all hashtags in tweet against team keywords
+		
 	foreach my $hashtag (@{$tweet->{entities}{hashtags}})
 	{
+		my $hash_text = $hashtag->{text};
+
+		#remove turkish characters
+		for(my $i=0;$i<@trchar;$i++){
+			$hash_text=~s/$trchar[$i]/$nontrc[$i]/g;
+		}
+
+ 		#convert to lowercase
+        $hash_text=lc($hash_text);
+
 		foreach my $team_key (@team_keywords){
-			if ($team_key eq $hashtag->{text}){
-				$possible_team=$hashtag->{text};
+			if ($team_key eq $hash_text){
+				$possible_team=$hash_text;
 				$num_of_teams++;
 			} 
 		}
@@ -266,7 +292,7 @@ sub incoming{
 	);
 
 	#Watching incoming tweets can be fun.
-	Status	printf "\@%-20.20s %-15.15s\n",$tweet->{user}{screen_name},$vote_indicator;
+	print "\@$tweet->{user}{screen_name}\t$vote_indicator\n";
 
 
 }
@@ -297,7 +323,7 @@ sub disconnect(){
 
 	my $percent = round(100*$total_valid_votes/$total_votes);
 
-	Status	print "
+	print "
 
 RESULTS
 Total number of votes......: $total_votes
@@ -312,12 +338,12 @@ TEAMS
 		LIKE '$valid_vote_prefix%' GROUP BY Status ORDER BY num DESC;");
 	$sth3->execute();
 	while($ref3 = $sth3->fetchrow_hashref()){
-		Status		print $ref3->{'Status'}."\t".$ref3->{'num'}." votes\n";
+		print $ref3->{'Status'}."\t".$ref3->{'num'}." votes\n";
 	}
 	$sth3->finish();
 
 	#Finally, display invalid votes.
-	Status	print "\nINVALID VOTES\n";
+	print "\nINVALID VOTES\n";
 	$sth3 = $dbh->prepare("SELECT COUNT(*) as num, Status FROM tweets WHERE Status 
 		LIKE 'not%' GROUP BY Status ORDER BY num DESC;");
 	$sth3->execute();
@@ -327,10 +353,10 @@ TEAMS
 
 	#Now we can exit in peace.
 	$sth3->finish();
-	Status	print "\nDisconnecting..";
+	print "\nDisconnecting..";
 	$dbh->disconnect();
 	$done->send;
-	Status	print ".\n";
+	print ".\n";
 }
 
 
