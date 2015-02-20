@@ -29,18 +29,18 @@ my @trchar=('ö','Ö','ç','Ç','ş','Ş','ı','İ','ğ','Ğ','ü','Ü');
 my @nontrc=('o','O','c','C','s','S','i','I','g','G','u','U');
 
 #Set default keywords to be tracked. They will be replaced by arguments if any given.
-my $event_keyword = "myEvent2015";
+my $event_keyword = "rotaart2015";
 my @team_keywords = qw/
 altunizade
 bakirkoy
 beyoglu
 bostanci
-dolmabahce1
-dolmabahce2
+dolmabahce
 fatih
 gayrettepe
 izmit
 kalamis
+suadiye
 taksim
 tuzla
 /;
