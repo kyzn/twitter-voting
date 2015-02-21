@@ -39,9 +39,7 @@ dolmabahce
 fatih
 gayrettepe
 izmit
-kalamis
 suadiye
-taksim
 tuzla
 /;
 
