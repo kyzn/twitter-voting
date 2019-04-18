@@ -3,7 +3,7 @@ Twitter Voting
 
 This app is intended to be used in events, where organizer wants to hold public voting through Twitter. Originally, the script has been developed for an event titled 'Rotaart 2015' that was held in Istanbul.
 
-#Requirements
+# Requirements
 
 You will obviously need Perl installed on your system. Most probably it's installed by default.
 
